@@ -1,0 +1,15 @@
+ARM GAS  agra.s 			page 1
+
+
+   1              	.global pixel
+   2              	
+   3              	pixel:
+   4 0000 1EFF2FE1 	    bx lr
+ARM GAS  agra.s 			page 2
+
+
+DEFINED SYMBOLS
+              agra.s:3      .text:0000000000000000 pixel
+              agra.s:4      .text:0000000000000000 $a
+
+NO UNDEFINED SYMBOLS
