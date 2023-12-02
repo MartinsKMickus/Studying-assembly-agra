@@ -10,7 +10,7 @@ putpixel:
     beq endputpixel
     bmi endputpixel
     mla r0, r2, r5, r1
-    lsl r0, r0, #4
+    lsl r0, r0, #2
     add r0, r4
     str r3, [r0]
     pop {pc}

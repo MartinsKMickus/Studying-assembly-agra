@@ -7,7 +7,7 @@ int main()
     current_pixel.r = 512;
     current_pixel.g = 512;
     current_pixel.b = 512;
-    pixel(15, 15, &current_pixel);
+    pixel(10, 5, &current_pixel);
     FrameShow();
     // printf("R is: %d\n", current_pixel.r);
     // printf("G is: %d\n", current_pixel.g);
