@@ -4,8 +4,10 @@
 int main()
 {
     pixcolor_t current_pixel;
-    *(unsigned int *)&current_pixel = 0x3FFFFFFF;
-    pixel(10, 10, &current_pixel);
+    current_pixel.r = 512;
+    current_pixel.g = 512;
+    current_pixel.b = 512;
+    pixel(15, 15, &current_pixel);
     FrameShow();
     // printf("R is: %d\n", current_pixel.r);
     // printf("G is: %d\n", current_pixel.g);

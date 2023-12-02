@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include "agra.h"
 
-#define STRUCTSIZE 32
+#define STRUCTSIZE 4
 
-#define WIDTH 40
+#define WIDTH 80
 #define HEIGHT 20
 
 pixcolor_t * framebuffer = NULL;
@@ -18,6 +18,16 @@ pixcolor_t * FrameBufferGetAddress()
     return framebuffer;
 }
 
+int FrameBufferGetWidth()
+{
+    return WIDTH;
+}
+
+int FrameBufferGetHeight()
+{
+    return HEIGHT;
+}
+
 int FrameShow()
 {
     // printf("Min Address: %d\n", (int)framebuffer);
@@ -28,7 +38,9 @@ int FrameShow()
     }
     pixcolor_t * p = framebuffer;
     unsigned int w_counter = 0;
-    while (p - framebuffer < framebuffer - framebuffer + WIDTH * HEIGHT * STRUCTSIZE)
+    // printf("p - framebuffer = %ld\n", (long unsigned)p - (long unsigned)framebuffer);
+    // printf("Second equation = %ld\n", (long unsigned)(WIDTH * HEIGHT * STRUCTSIZE));
+    while ((long unsigned)(p) < (long unsigned)(framebuffer + WIDTH * HEIGHT * STRUCTSIZE))
     {
         if (p->r>511)
         {
@@ -78,7 +90,7 @@ int FrameShow()
                 }
                 else
                 {
-                    printf("?");
+                    printf(" ");
                 }
             }
         }
@@ -88,7 +100,8 @@ int FrameShow()
             w_counter = 0;
         }
         
-        p+=32;
+        p+=4;
+        // printf("P = %d", p);
     }
     
     return 0;
