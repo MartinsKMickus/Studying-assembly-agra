@@ -24,7 +24,7 @@ void setPixColor( pixcolor_t * color_op);
 void pixel(int x, int y, pixcolor_t * colorop);
 
 // Funkcija līnijas zīmēšanai starp punktiem
-void line(int x1, int y1, int x2, int y2);
+int line(int x1, int y1, int x2, int y2);
 
 // Funkcija trijstūra aizpildīšanai ar tekošo krāsu
 void triangleFill(int x1, int y1, int x2, int y2, int x3, int y3);

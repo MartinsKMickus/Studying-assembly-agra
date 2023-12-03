@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "agra.h"
+#include <unistd.h> // Sleep
 
 int main()
 {
@@ -8,6 +9,8 @@ int main()
     current_pixel.g = 512;
     current_pixel.b = 512;
     pixel(10, 5, &current_pixel);
+    sleep(1);
+    printf("Ret: %d\n",line(1, 1, 10, 5));
     FrameShow();
     // printf("R is: %d\n", current_pixel.r);
     // printf("G is: %d\n", current_pixel.g);
