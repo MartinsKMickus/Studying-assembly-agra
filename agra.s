@@ -119,6 +119,7 @@ linepixel:
 
 
     # OTHER SOLUTION:
+    # https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 line2:
     # Ieeja:
     # R0 = X0
@@ -127,16 +128,35 @@ line2:
     # R3 = Y1
     PUSH {R4-R12, LR}
     # if abs(y1 - y0) < abs(x1 - x0)
-    # SUB R4, R3, R1
-    # CMP R4, #0
+    SUB R4, R3, R1
+    CMP R4, #0
     # Ja negatīvs, tad maina zīmi.
-    # RSBLT R4, R4, #0
-    # SUB R5, R2, R0
-    # CMP R5, #0
-    # RSBLT R5, R5, #0
-    #MOV R0, R5
-
-    # CMP R4, R5
+    RSBLT R4, R4, #0
+    SUB R5, R2, R0
+    CMP R5, #0
+    RSBLT R5, R5, #0
+    CMP R4, R5
+    # R4 un R5 vairs nevajag.
+    BGE plottinglinehigh
+plottinglinelow:
+    CMP R0, R2
+    BLGT lineswitchsides
+    B plotlinelow
+plottinglinehigh:
+    CMP R1, R3
+    BLGT lineswitchsides
+    B plotlinehigh
+lineswitchsides:
+    # Samainīt vietām x0, y0 ar x1, y1
+    PUSH {LR}
+    MOV R4, R0
+    MOV R0, R2
+    MOV R2, R4
+    MOV R4, R1
+    MOV R1, R3
+    MOV R3, R4
+    POP {PC}
+    # 
     # BLT absy1minusy0lowerabsx1minusx0
     # POP {R4-R11, LR}
 
