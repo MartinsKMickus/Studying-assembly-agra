@@ -10,7 +10,7 @@ int main()
     current_pixel.b = 512;
     pixel(10, 5, &current_pixel);
     sleep(1);
-    printf("Ret: %d\n",line(1, 1, 10, 5));
+    printf("Ret: %d\n",line(2, 10, 30, 0));
     FrameShow();
     // printf("R is: %d\n", current_pixel.r);
     // printf("G is: %d\n", current_pixel.g);

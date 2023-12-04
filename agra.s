@@ -33,7 +33,7 @@ pixel:
     # R0 = X
     # R1 = Y
     # R2 = pixcolor_t
-    PUSH {R4, R5, R6, LR}
+    PUSH {R4-R12, LR}
     # Move R0,R1,R2 = X, Y, Col -> R1,R2,R3
     BL getbufferinfo
     LDR R3, [R2]
@@ -42,14 +42,14 @@ pixel:
     BL putpixel
 
 fastend:
-    POP {R4, R5, R6, LR}
+    POP {R4-R12, LR}
     BX LR
 
 line:
     # Ieeja:
     # R0 = X0
     # R1 = Y0
-    # R2 = X1 -> R12 (vēlāk)
+    # R2 = X1 -> R10 (vēlāk)
     # R3 = Y1
     # Pārējie dati:
     # R4 = dx
@@ -57,8 +57,6 @@ line:
     # R7 = dE
     # R8 = dNE
     # R9 = d
-    # R10= x
-    # R11= y
     PUSH {R4-R12, LR}
     # dx = x1-x0
     SUB R4, R2, R0
@@ -75,21 +73,59 @@ line:
     # x = x0
     MOV R1, R0
     # Saglabāt R2 pirms tur iet R1.
-    MOV R12, R2
+    MOV R10, R2
     # y = y0
     MOV R2, R1
     # Ielādēt info par buferi
     BL getbufferinfo
-
-    # TEMP Aizpilda tikai pirmās kordinātas pikseli
+    # R0 = FREE
+    # R1 = X
+    # R2 = Y
+    # R3 = -
+    # R4 = ADDRESS
+    # R5 = Xmax
+    # R6 = Ymax
+    # R7 = dE
+    # R8 = dNE
+    # R9 = d
+    # R10= X1
+    # TEMP
     MOV R3, #0xFFFFFFFF
+linewhile:
+    # while(x<x1)
+    CMP R1, R10
+    BGE fastend
+    CMP R9, #0
+    # if(d<=0)
+    BGT linedhigh
+linedlesse:
+    # d+=dE
+    # ++x
+    ADD R9, R9, R7
+    ADD R1, R1, #1
+    B linepixel
+linedhigh:
+    # d+=dNE
+    # ++x
+    # ++y
+    ADD R9, R9, R8
+    ADD R1, R1, #1
+    ADD R2, R2, #1
+linepixel:
     BL putpixel
-    POP {R4-R12, LR}
+    B linewhile
+    # POP {R4-R12, LR}
 # whilelinexless:
 
 
     # OTHER SOLUTION:
-    #PUSH {R0-R4}
+line2:
+    # Ieeja:
+    # R0 = X0
+    # R1 = Y0
+    # R2 = X1
+    # R3 = Y1
+    PUSH {R4-R12, LR}
     # if abs(y1 - y0) < abs(x1 - x0)
     # SUB R4, R3, R1
     # CMP R4, #0
