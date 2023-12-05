@@ -1,6 +1,17 @@
+.section .data
+pixcolor:
+    .space 4
+.section .text
+.global setPixColor
 .global pixel
 .global line
 .global circle
+setPixColor:
+    LDR R1, =pixcolor
+    LDR R0, [R0]
+    STR R0, [R1]
+    @ EOR R0, R0, #0xFFFFFFFF
+    BX LR
 putpixel:
     # Ieeja
     # R1 = X
@@ -17,7 +28,7 @@ putpixel:
     CMP R6, R2
     BEQ endputpixel
     BMI endputpixel
-    mla R0, R2, R5, R1
+    MLA R0, R2, R5, R1
     LSL R0, R0, #2
     # add R0, R4
     STR R3, [R0, R4]
@@ -26,14 +37,16 @@ endputpixel:
 
 getbufferinfo:
     PUSH {LR}
-    PUSH {R0-R3, R12}
+    PUSH {R0-R2, R12}
     BL FrameBufferGetAddress
     MOV R4, R0
     BL FrameBufferGetWidth
     MOV R5, R0
     BL FrameBufferGetHeight
     MOV R6, R0
-    POP {R0-R3, R12}
+    LDR R3, =pixcolor
+    LDR R3, [R3]
+    POP {R0-R2, R12}
     POP {PC}
 pixel:
     # Ieeja:
@@ -134,8 +147,6 @@ continueplotlinelow:
     # R9 = dy
     # R10= yi
     # R11= D
-    # TEMP
-    MOV R3, #0xFFFFFFFF
 linelowloop:
     # for x from x0 to x1
     CMP R1, R7
@@ -202,8 +213,6 @@ continueplotlinehigh:
     # R9 = dy
     # R10= xi
     # R11= D
-    # TEMP
-    MOV R3, #0xFFFFFFFF
 linehighloop:
     # for y from y0 to y1
     CMP R2, R7
@@ -249,8 +258,6 @@ circle:
     # R9 = pre-x
     # R10= pre-y
     # R11= t2
-    # TEMP
-    MOV R3, #0xFFFFFFFF
     # t1 = r / 16
     MOV R8, R7, LSR #4 @ Dalīt ar 16
     @ x = r
