@@ -1,6 +1,10 @@
 .section .data
 pixcolor:
     .space 4
+lastx:
+    .space 4
+lasty:
+    .space 4
 .section .text
 .global setPixColor
 .global pixel
@@ -10,7 +14,6 @@ setPixColor:
     LDR R1, =pixcolor
     LDR R0, [R0]
     STR R0, [R1]
-    @ EOR R0, R0, #0xFFFFFFFF
     BX LR
 putpixel:
     # Ieeja
@@ -21,7 +24,21 @@ putpixel:
     # R5 = Xmax
     # R6 = Ymax 
     PUSH {LR}
-    # Pārbaude vai X vai Y nav ārpusē
+    PUSH {R7-R8}
+    @ Pārbaude vai tikko jau nebija. Ja pikselis bija, tad izlaiž. XOR operācijas glābšana
+    LDR R7, =lastx @ Ielādē X adresi
+    LDR R8, =lasty @ Ielādē Y adresi
+    LDR R0, [R7]
+    CMP R0, R1
+    BNE continueputpixel
+    LDR R0, [R8]
+    CMP R0, R2
+    BEQ endputpixel
+continueputpixel:
+    STR R1, [R7] @ Saglabā X R7
+    STR R2, [R8] @ Saglabā Y R8
+
+    @ Pārbaude vai X vai Y nav ārpusē
     CMP R5, R1
     BEQ endputpixel
     BMI endputpixel
@@ -30,10 +47,34 @@ putpixel:
     BMI endputpixel
     MLA R0, R2, R5, R1
     LSL R0, R0, #2
-    # add R0, R4
+    LSR R7, R3, #30
+    CMP R7, #1
+    BEQ putpixeland
+    CMP R7, #2
+    BEQ putpixelor
+    CMP R7, #3
+    BEQ putpixelxor
     STR R3, [R0, R4]
 endputpixel:
+    POP {R7-R8}
     POP {PC}
+
+putpixeland:
+    LDR R7, [R0, R4]
+    AND R3, R3, R7
+    STR R3, [R0, R4]
+    B endputpixel
+putpixelor:
+    LDR R7, [R0, R4]
+    ORR R3, R3, R7
+    STR R3, [R0, R4]
+    B endputpixel
+putpixelxor:
+    LDR R7, [R0, R4]
+    EOR R3, R3, R7
+    STR R3, [R0, R4]
+    MOV R0, R7
+    B endputpixel
 
 getbufferinfo:
     PUSH {LR}
@@ -62,6 +103,11 @@ pixel:
     BL putpixel
 
 fastend:
+    LDR R1, =lastx @ Ielādē X adresi
+    LDR R2, =lasty @ Ielādē Y adresi
+    MOV R0, #-1
+    STR R0, [R1]
+    STR R0, [R2]
     POP {R4-R12, LR}
     BX LR
 
