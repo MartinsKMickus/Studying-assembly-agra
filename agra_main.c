@@ -16,12 +16,13 @@ int main()
     line(2, 2, 8, 12);
     sleep(1);
     FrameShow();
-    line(10, 18, 16, 2);
-    sleep(1);
-    FrameShow();
     line(5, 9, 25, 3);
     sleep(1);
     // printf("line returned: %d", returned);
+    FrameShow();
+    circle(40, 10, 7);
+    sleep(1);
+    // printf("Circle returned: %d", returned);
     FrameShow();
     // printf("R is: %d\n", current_pixel.r);
     // printf("G is: %d\n", current_pixel.g);

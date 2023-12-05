@@ -1,5 +1,6 @@
 .global pixel
 .global line
+.global circle
 putpixel:
     # Ieeja
     # R1 = X
@@ -50,77 +51,6 @@ pixel:
 fastend:
     POP {R4-R12, LR}
     BX LR
-
-@ line:
-@     # Ieeja:
-@     # R0 = X0
-@     # R1 = Y0
-@     # R2 = X1 -> R10 (vēlāk)
-@     # R3 = Y1
-@     # Pārējie dati:
-@     # R4 = dx
-@     # R5 = dy
-@     # R7 = dE
-@     # R8 = dNE
-@     # R9 = d
-@     PUSH {R4-R12, LR}
-@     # dx = x1-x0
-@     SUB R4, R2, R0
-@     # dy = y1-y0
-@     SUB R5, R3, R1
-@     # d = 2 * dy - dx
-@     LSL R9, R5, #1
-@     SUB R9, R9, R4
-@     # dE = 2 * dy
-@     LSL R7, R5, #1
-@     # dNE = 2 * (dy - dx)
-@     SUB R8, R5, R4
-@     LSL R8, R8, #1
-@     # x = x0
-@     MOV R1, R0
-@     # Saglabāt R2 pirms tur iet R1.
-@     MOV R10, R2
-@     # y = y0
-@     MOV R2, R1
-@     # Ielādēt info par buferi
-@     BL getbufferinfo
-@     # R0 = FREE
-@     # R1 = X
-@     # R2 = Y
-@     # R3 = -
-@     # R4 = ADDRESS
-@     # R5 = Xmax
-@     # R6 = Ymax
-@     # R7 = dE
-@     # R8 = dNE
-@     # R9 = d
-@     # R10= X1
-@     # TEMP
-@     MOV R3, #0xFFFFFFFF
-@ linewhile:
-@     # while(x<x1)
-@     CMP R1, R10
-@     BGE fastend
-@     CMP R9, #0
-@     # if(d<=0)
-@     BGT linedhigh
-@ linedlesse:
-@     # d+=dE
-@     # ++x
-@     ADD R9, R9, R7
-@     ADD R1, R1, #1
-@     B linepixel
-@ linedhigh:
-@     # d+=dNE
-@     # ++x
-@     # ++y
-@     ADD R9, R9, R8
-@     ADD R1, R1, #1
-@     ADD R2, R2, #1
-@ linepixel:
-@     BL putpixel
-@     B linewhile
-
 
     # OTHER SOLUTION:
     # https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -295,3 +225,135 @@ linehighloopno:
 repeatlinehighloop:
     ADD R2, R2, #1
     B linehighloop
+
+# Apļa līnija: https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+circle:
+    PUSH {R4-R12, LR}
+    # Ieeja:
+    # R0 = X -> R1
+    # R1 = Y -> R2
+    # R2 = R -> R7
+    MOV R7, R2
+    MOV R2, R1
+    MOV R1, R0
+    BL getbufferinfo
+    # R0 = FREE
+    # R1 = X
+    # R2 = Y
+    # R3 = -
+    # R4 = ADDRESS
+    # R5 = Xmax
+    # R6 = Ymax
+    # R7 = R
+    # R8 = t1
+    # R9 = pre-x
+    # R10= pre-y
+    # R11= t2
+    # TEMP
+    MOV R3, #0xFFFFFFFF
+    # t1 = r / 16
+    MOV R8, R7, LSR #4 @ Dalīt ar 16
+    @ x = r
+    MOV R9, R7
+    @ y = 0
+    MOV R10, #0
+circleloop:
+    @ Repeat Until x < y
+    CMP R9, R10
+    BLT fastend
+    @ PIXEL
+    BL circlepoint1
+    BL circlepoint2
+    BL circlepoint3
+    BL circlepoint4
+    BL circlepoint5
+    BL circlepoint6
+    BL circlepoint7
+    BL circlepoint8
+    @ y = y + 1
+    ADD R10, R10, #1
+    @ t1 = t1 + y
+    ADD R8, R8, R10
+    @ t2 = t1 - x
+    SUB R11, R8, R9
+    @ If t2 >= 0 (Ja neizpildās, tad aktārto)
+    CMP R11, #0
+    BLT circleloop
+    @ t1 = t2
+    MOV R8, R11
+    @ x = x - 1
+    SUB R9, R9, #1
+    B circleloop
+
+circlepoint1:
+    @ (x, y)
+    PUSH {LR}
+    ADD R1, R1, R9
+    ADD R2, R2, R10
+    BL putpixel
+    SUB R1, R1, R9
+    SUB R2, R2, R10
+    POP {PC}
+circlepoint2:
+    @ (x,-y)
+    PUSH {LR}
+    ADD R1, R1, R9
+    SUB R2, R2, R10
+    BL putpixel
+    SUB R1, R1, R9
+    ADD R2, R2, R10
+    POP {PC}
+circlepoint3:
+    @ (y,-x)
+    PUSH {LR}
+    ADD R1, R1, R10
+    SUB R2, R2, R9
+    BL putpixel
+    SUB R1, R1, R10
+    ADD R2, R2, R9
+    POP {PC}
+circlepoint4:
+    @ (-y,-x)
+    PUSH {LR}
+    SUB R1, R1, R10
+    SUB R2, R2, R9
+    BL putpixel
+    ADD R1, R1, R10
+    ADD R2, R2, R9
+    POP {PC}
+circlepoint5:
+    @ (-x, -y)
+    PUSH {LR}
+    SUB R1, R1, R9
+    SUB R2, R2, R10
+    BL putpixel
+    ADD R1, R1, R9
+    ADD R2, R2, R10
+    POP {PC}
+circlepoint6:
+    @ (-x, y)
+    PUSH {LR}
+    SUB R1, R1, R9
+    ADD R2, R2, R10
+    BL putpixel
+    ADD R1, R1, R9
+    SUB R2, R2, R10
+    POP {PC}
+circlepoint7:
+    @ (-y,x)
+    PUSH {LR}
+    SUB R1, R1, R10
+    ADD R2, R2, R9
+    BL putpixel
+    ADD R1, R1, R10
+    SUB R2, R2, R9
+    POP {PC}
+circlepoint8:
+    @ (y,x)
+    PUSH {LR}
+    ADD R1, R1, R10
+    ADD R2, R2, R9
+    BL putpixel
+    SUB R1, R1, R10
+    SUB R2, R2, R9
+    POP {PC}
