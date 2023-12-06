@@ -10,6 +10,7 @@ lasty:
 .global pixel
 .global line
 .global circle
+.global triangleFill
 setPixColor:
     LDR R1, =pixcolor
     LDR R0, [R0]
@@ -410,3 +411,10 @@ circlepoint8:
     SUB R1, R1, R10
     SUB R2, R2, R9
     POP {PC}
+
+triangleFill:
+    @ ADD SP, #8
+    @ PUSH {R4-R12}
+    @ SUB SP, #36
+    POP {R0}
+    BX LR

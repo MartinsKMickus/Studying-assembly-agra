@@ -41,6 +41,8 @@ int main()
     // current_pixel.b = 0;
     // setPixColor(&current_pixel);
     line(5, 9, 25, 3);
+    int returned = triangleFill(1,1,40,2,45,15);
+    printf("tri returned: %u", returned);
     FrameShow();
     // printf("R is: %d\n", current_pixel.r);
     // printf("G is: %d\n", current_pixel.g);
