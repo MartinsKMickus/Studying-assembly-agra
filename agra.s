@@ -5,6 +5,10 @@ lastx:
     .space 4
 lasty:
     .space 4
+tempx:
+    .space 4
+tempy:
+    .space 4
 .section .text
 .global setPixColor
 .global pixel
@@ -20,7 +24,7 @@ putpixel:
     # Ieeja
     # R1 = X
     # R2 = Y
-    # R3 = PIXEL
+    # R3 = COLOR
     # R4 = ADDRESS
     # R5 = Xmax
     # R6 = Ymax 
@@ -106,9 +110,9 @@ pixel:
 fastend:
     LDR R1, =lastx @ Ielādē X adresi
     LDR R2, =lasty @ Ielādē Y adresi
-    MOV R0, #-1
-    STR R0, [R1]
-    STR R0, [R2]
+    MOV R12, #-1
+    STR R12, [R1]
+    STR R12, [R2]
     POP {R4-R12, LR}
     BX LR
 
@@ -185,7 +189,7 @@ continueplotlinelow:
     # R2 = Y
     MOV R2, R1
     MOV R1, R0
-    # R3 = -
+    # R3 = COLOR
     # R4 = ADDRESS
     # R5 = Xmax
     # R6 = Ymax
@@ -251,7 +255,7 @@ continueplotlinehigh:
     # R2 = Y
     MOV R2, R1
     MOV R1, R0
-    # R3 = -
+    # R3 = COLOR
     # R4 = ADDRESS
     # R5 = Xmax
     # R6 = Ymax
@@ -296,7 +300,7 @@ circle:
     # R0 = FREE
     # R1 = X
     # R2 = Y
-    # R3 = -
+    # R3 = COLOR
     # R4 = ADDRESS
     # R5 = Xmax
     # R6 = Ymax
@@ -412,9 +416,335 @@ circlepoint8:
     SUB R2, R2, R9
     POP {PC}
 
+@ https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+triPointSign:
+    @ R7 = x1
+    @ R8 = y1
+    @ R9 = x2
+    @ R10= y2
+    @ R11= x3
+    @ R12= y3
+    PUSH {LR}
+    PUSH {R5-R6}
+    @ (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+    SUB R0, R7, R11
+    SUB R5, R10, R12
+    MUL R5, R0, R5
+    SUB R5, R9, R11
+    SUB R6, R8, R12
+    MUL R5, R5, R6
+    SUB R0, R0, R5
+    @ Return R0
+    POP {R5-R6}
+    POP {PC}
+
+triSigns:
+    PUSH {LR}
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = FREE R
+    @ R4 = FREE R
+    @ R5 = FREE R
+    @ R6 = FREE
+    @ R7 = x1
+    @ R8 = y1
+    @ R9 = x2
+    @ R10= y2
+    @ R11= x3
+    @ R12= y3
+    @ d2 = sign(pt, v2, v3)
+    MOV R3, R7
+    MOV R7, R1
+    MOV R5, R8
+    MOV R8, R2
+    BL triPointSign
+    MOV R4, R0
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = x1
+    @ R4 = RETURN
+    @ R5 = y1
+    @ R7 = X
+    @ R8 = Y
+    @ R9 = x2
+    @ R10= y2
+    @ R11= x3
+    @ R12= y3
+
+    @ d1 = sign(pt, v1, v2)
+    MOV R0, R9
+    MOV R9, R3
+    MOV R3, R0
+    MOV R0, R10
+    MOV R10, R5
+    MOV R5, R0
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = x2
+    @ R4 = RETURN
+    @ R5 = y2
+    @ R7 = X
+    @ R8 = Y
+    @ R9 = x1
+    @ R10= y1
+    @ R11= x3
+    @ R12= y3
+    MOV R0, R11
+    MOV R11, R3
+    MOV R1, R0
+    MOV R0, R12
+    MOV R12, R5
+    MOV R2, R0
+    BL triPointSign
+    MOV R3, R0
+    @ R0 = FREE
+    @ R1 = x3
+    @ R2 = y3
+    @ R3 = RETURN
+    @ R4 = RETURN
+    @ R5 = y2
+    @ R7 = X
+    @ R8 = Y
+    @ R9 = x1
+    @ R10= y1
+    @ R11= x2
+    @ R12= y2
+
+    # d3 = sign(pt, v3, v1);
+    MOV R0, R9
+    MOV R9, R1
+    MOV R1, R0
+    MOV R0, R10
+    MOV R10, R2
+    MOV R2, R0
+    @ R0 = FREE
+    @ R1 = x1
+    @ R2 = y1
+    @ R3 = RETURN
+    @ R4 = RETURN
+    @ R5 = y2
+    @ R7 = X
+    @ R8 = Y
+    @ R9 = x3
+    @ R10= y3
+    @ R11= x2
+    @ R12= y2
+    MOV R0, R11
+    MOV R11, R1
+    MOV R1, R0
+    MOV R0, R12
+    MOV R12, R2
+    MOV R2, R0
+    BL triPointSign
+    MOV R5, R0
+    @ R0 = FREE
+    @ R1 = x2
+    @ R2 = y2
+    @ R3 = RETURN
+    @ R4 = RETURN
+    @ R5 = RETURN
+    @ R7 = X
+    @ R8 = Y
+    @ R9 = x3
+    @ R10= y3
+    @ R11= x1
+    @ R12= y1
+    MOV R0, R7
+    MOV R7, R1
+    MOV R1, R0
+    MOV R0, R8
+    MOV R8, R2
+    MOV R2, R0
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = RETURN
+    @ R4 = RETURN
+    @ R5 = RETURN
+    @ R7 = x2
+    @ R8 = y2
+    @ R9 = x3
+    @ R10= y3
+    @ R11= x1
+    @ R12= y1
+    MOV R0, R11
+    MOV R11, R9
+    MOV R9, R0
+    MOV R0, R12
+    MOV R12, R10
+    MOV R10, R0
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = RETURN
+    @ R4 = RETURN
+    @ R5 = RETURN
+    @ R7 = x2
+    @ R8 = y2
+    @ R9 = x1
+    @ R10= y1
+    @ R11= x3
+    @ R12= y3
+    MOV R0, R9
+    MOV R9, R7
+    MOV R7, R0
+    MOV R0, R10
+    MOV R10, R8
+    MOV R8, R0
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = RETURN
+    @ R4 = RETURN
+    @ R5 = RETURN
+    @ R7 = x1
+    @ R8 = y1
+    @ R9 = x2
+    @ R10= y2
+    @ R11= x3
+    @ R12= y3
+    POP {PC}
+
+triSignChecker:
+    PUSH {LR}
+    PUSH {R3-R5}
+    @ d1 = sign(pt, v1, v2); -> R3
+    @ d2 = sign(pt, v2, v3); -> R4
+    @ d3 = sign(pt, v3, v1); -> R5
+    BL triSigns
+    @ R0 = FREE R
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = D1
+    @ R4 = D2
+    @ R5 = D3
+    @ R6 = Ymax
+    @ R7 = x1
+    @ R8 = y1
+    @ R9 = x2
+    @ R10= y2
+    @ R11= x3
+    @ R12= y3
+
+    PUSH {R6-R7}
+    @ R0 = FREE R
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = D1
+    @ R4 = D2
+    @ R5 = D3
+    @ R6 = FREE
+    @ R7 = FREE
+    @ R8 = y1
+    @ R9 = x2
+    @ R10= y2
+    @ R11= x3
+    @ R12= y3
+
+    MOV R7, #0
+    MOV R8, #0
+    @ has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0)
+    CMP R3, #0
+    MOVLT R6, #1
+    CMP R4, #0
+    MOVLT R6, #1
+    CMP R5, #0
+    MOVLT R6, #1
+    @ has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0)
+    CMP R3, #0
+    MOVGT R7, #1
+    CMP R4, #0
+    MOVGT R7, #1
+    CMP R5, #0
+    MOVGT R7, #1
+    @ return !(has_neg && has_pos)
+    AND R0, R6, R7
+    RSB R0, R0, #1
+
+    POP {R6-R7}
+    POP {R3-R5}
+    POP {PC}
+
 triangleFill:
-    @ ADD SP, #8
-    @ PUSH {R4-R12}
-    @ SUB SP, #36
-    POP {R0}
-    BX LR
+    @ R4 -> SP-4
+    SUB SP, #4
+    STR R4, [SP]
+    ADD SP, #4
+
+    @ R0 -> tempx, R1 -> tempy
+    LDR R4, =tempx
+    STR R0, [R4]
+    LDR R4, =tempy
+    STR R1, [R4]
+
+    @ R4 <- SP-4
+    SUB SP, #4
+    LDR R4, [SP]
+    ADD SP, #4
+
+    LDR R0, [sp]
+    LDR R1, [sp, #4]
+    @ R0 = x3
+    @ R1 = y3
+    @ R2 = x2
+    @ R3 = y2
+    @ tempx = x1
+    @ tempy = y1
+    PUSH {R4-R12, LR}
+
+    @ R0 = x3 -> R7
+    MOV R7, R0
+    @ R1 = y3 -> R8
+    MOV R8, R1
+    @ R2 = x2 -> R9
+    MOV R9, R2
+    @ R3 = y2 -> R10
+    MOV R10, R3
+    @ tempx = x1 -> R11
+    LDR R11, =tempx
+    LDR R11, [R11]
+    @ tempy = y1 -> R12
+    LDR R12, =tempy
+    LDR R12, [R12]
+    BL getbufferinfo
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = COLOR
+    @ R4 = ADDRESS
+    @ R5 = Xmax
+    @ R6 = Ymax
+    @ R7 = x3
+    @ R8 = y3
+    @ R9 = x2
+    @ R10= y2
+    @ R11= x1
+    @ R12= y1
+    MOV R0, R11
+    MOV R11, R7
+    MOV R7, R0
+    MOV R0, R12
+    MOV R12, R8
+    MOV R8, R0
+
+    MOV R1, #-1
+trianglexloop:
+    ADD R1, #1
+    MOV R2, #0
+    CMP R1, R5
+    BGE fastend
+triangleyloop:
+    CMP R2, R6
+    BGE trianglexloop
+    BL triSignChecker
+    CMP R0, #1
+    BLEQ putpixel
+    ADD R2, #1
+    B triangleyloop
+
+tricheck:
+    MOV R0, R2
+    B fastend
