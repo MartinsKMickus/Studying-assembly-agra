@@ -747,7 +747,3 @@ triangleyloop:
     BLEQ putpixel
     ADD R2, R2, #1
     B triangleyloop
-
-tricheck:
-    MOV R0, R2
-    B fastend
