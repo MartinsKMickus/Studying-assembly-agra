@@ -29,7 +29,7 @@ putpixel:
     # R5 = Xmax
     # R6 = Ymax 
     PUSH {LR}
-    PUSH {R7-R8}
+    PUSH {R0, R7-R8}
     @ Pārbaude vai tikko jau nebija. Ja pikselis bija, tad izlaiž. XOR operācijas glābšana
     LDR R7, =lastx @ Ielādē X adresi
     LDR R8, =lasty @ Ielādē Y adresi
@@ -52,6 +52,7 @@ continueputpixel:
     BMI endputpixel
     MLA R0, R2, R5, R1
     LSL R0, R0, #2
+    @ Pārbaudīt operācijas bitus un veikt atbilstošu darbību.
     LSR R7, R3, #30
     CMP R7, #1
     BEQ putpixeland
@@ -61,24 +62,23 @@ continueputpixel:
     BEQ putpixelxor
     STR R3, [R0, R4]
 endputpixel:
-    POP {R7-R8}
+    POP {R0, R7-R8}
     POP {PC}
 
 putpixeland:
     LDR R7, [R0, R4]
-    AND R3, R3, R7
-    STR R3, [R0, R4]
+    AND R8, R3, R7
+    STR R8, [R0, R4]
     B endputpixel
 putpixelor:
     LDR R7, [R0, R4]
-    ORR R3, R3, R7
-    STR R3, [R0, R4]
+    ORR R8, R3, R7
+    STR R8, [R0, R4]
     B endputpixel
 putpixelxor:
     LDR R7, [R0, R4]
-    EOR R3, R3, R7
-    STR R3, [R0, R4]
-    MOV R0, R7
+    EOR R8, R3, R7
+    STR R8, [R0, R4]
     B endputpixel
 
 getbufferinfo:
@@ -425,17 +425,19 @@ triPointSign:
     @ R11= x3
     @ R12= y3
     PUSH {LR}
-    PUSH {R5-R6}
+    PUSH {R4-R6}
     @ (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
     SUB R0, R7, R11
     SUB R5, R10, R12
-    MUL R5, R0, R5
+    MUL R6, R0, R5
+    MOV R0, R6
     SUB R5, R9, R11
     SUB R6, R8, R12
-    MUL R5, R5, R6
+    MUL R4, R5, R6
+    MOV R5, R4
     SUB R0, R0, R5
     @ Return R0
-    POP {R5-R6}
+    POP {R4-R6}
     POP {PC}
 
 triSigns:
@@ -472,7 +474,6 @@ triSigns:
     @ R10= y2
     @ R11= x3
     @ R12= y3
-
     @ d1 = sign(pt, v1, v2)
     MOV R0, R9
     MOV R9, R3
@@ -610,18 +611,18 @@ triSigns:
 
 triSignChecker:
     PUSH {LR}
-    PUSH {R3-R5}
+    PUSH {R2-R8} @ Man īsti nav saprotams kāpēc jāpusho arī R8, lai neļautu mainīties R2 SAREŽĢĪTS LABOJUMS
     @ d1 = sign(pt, v1, v2); -> R3
     @ d2 = sign(pt, v2, v3); -> R4
     @ d3 = sign(pt, v3, v1); -> R5
     BL triSigns
     @ R0 = FREE R
     @ R1 = X
-    @ R2 = Y
+    @ R2 = Y 
     @ R3 = D1
     @ R4 = D2
     @ R5 = D3
-    @ R6 = Ymax
+    @ R6 = FREE
     @ R7 = x1
     @ R8 = y1
     @ R9 = x2
@@ -629,7 +630,7 @@ triSignChecker:
     @ R11= x3
     @ R12= y3
 
-    PUSH {R6-R7}
+    @ PUSH {R7}
     @ R0 = FREE R
     @ R1 = X
     @ R2 = Y
@@ -664,8 +665,8 @@ triSignChecker:
     AND R0, R6, R7
     RSB R0, R0, #1
 
-    POP {R6-R7}
-    POP {R3-R5}
+    @ POP {R7}
+    POP {R2-R8}
     POP {PC}
 
 triangleFill:
@@ -732,7 +733,7 @@ triangleFill:
 
     MOV R1, #-1
 trianglexloop:
-    ADD R1, #1
+    ADD R1, R1, #1
     MOV R2, #0
     CMP R1, R5
     BGE fastend
@@ -742,7 +743,7 @@ triangleyloop:
     BL triSignChecker
     CMP R0, #1
     BLEQ putpixel
-    ADD R2, #1
+    ADD R2, R2, #1
     B triangleyloop
 
 tricheck:

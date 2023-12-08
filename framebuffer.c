@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include "agra.h"
 
-#define WIDTH 80
+// definēt ekrāna buferi ar izmēru 40 x 20 (lietojot jūsu framebuffer.c versiju)
+#define WIDTH 40
 #define HEIGHT 20
 
 pixcolor_t * framebuffer = NULL;
@@ -51,7 +52,8 @@ int FrameShow()
                 }
                 else
                 {
-                    printf("\033[1;33mY\033[1;0m");
+                    printf("Y");
+                    // printf("\033[1;33mY\033[1;0m");
                 }
                 
             }
@@ -59,11 +61,13 @@ int FrameShow()
             {
                 if (p->b>511)
                 {
-                    printf("\033[1;35mM\033[1;0m");
+                    printf("M");
+                    // printf("\033[1;35mM\033[1;0m");
                 }
                 else
                 {
-                    printf("\033[1;31mR\033[1;0m");
+                    printf("R");
+                    // printf("\033[1;31mR\033[1;0m");
                 }
             }
         }
@@ -73,11 +77,13 @@ int FrameShow()
             {
                 if (p->b>511)
                 {
-                    printf("\033[1;36mC\033[1;0m");
+                    printf("C");
+                    // printf("\033[1;36mC\033[1;0m");
                 }
                 else
                 {
-                    printf("\033[1;32mG\033[1;0m");
+                    printf("G");
+                    // printf("\033[1;32mG\033[1;0m");
                 }
                 
             }
@@ -85,7 +91,8 @@ int FrameShow()
             {
                 if (p->b>511)
                 {
-                    printf("\033[1;34mB\033[1;0m");
+                    printf("B");
+                    // printf("\033[1;34mB\033[1;0m");
                 }
                 else
                 {
