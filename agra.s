@@ -44,12 +44,14 @@ continueputpixel:
     STR R2, [R8] @ Saglabā Y R8
 
     @ Pārbaude vai X vai Y nav ārpusē
-    CMP R5, R1
-    BEQ endputpixel
-    BMI endputpixel
-    CMP R6, R2
-    BEQ endputpixel
-    BMI endputpixel
+    CMP R1, R5
+    BGE endputpixel
+    CMP R1, #0
+    BLT endputpixel
+    CMP R2, R6
+    BGE endputpixel
+    CMP R2, #0
+    BLT endputpixel
     MLA R0, R2, R5, R1
     LSL R0, R0, #2
     @ Pārbaudīt operācijas bitus un veikt atbilstošu darbību.
