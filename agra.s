@@ -21,13 +21,13 @@ setPixColor:
     STR R0, [R1]
     BX LR
 putpixel:
-    # Ieeja
-    # R1 = X
-    # R2 = Y
-    # R3 = COLOR
-    # R4 = ADDRESS
-    # R5 = Xmax
-    # R6 = Ymax 
+    @ Ieeja
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = COLOR
+    @ R4 = ADDRESS
+    @ R5 = Xmax
+    @ R6 = Ymax 
     PUSH {LR}
     PUSH {R0, R7-R8}
     @ Pārbaude vai tikko jau nebija. Ja pikselis bija, tad izlaiž. XOR operācijas glābšana
@@ -97,12 +97,12 @@ getbufferinfo:
     POP {R0-R2, R12}
     POP {PC}
 pixel:
-    # Ieeja:
-    # R0 = X
-    # R1 = Y
-    # R2 = pixcolor_t
+    @ Ieeja:
+    @ R0 = X
+    @ R1 = Y
+    @ R2 = pixcolor_t
     PUSH {R4-R12, LR}
-    # Move R0,R1,R2 = X, Y, Col -> R1,R2,R3
+    @ Move R0,R1,R2 = X, Y, Col -> R1,R2,R3
     BL getbufferinfo
     LDR R3, [R2]
     MOV R2, R1
@@ -118,25 +118,25 @@ fastend:
     POP {R4-R12, LR}
     BX LR
 
-    # OTHER SOLUTION:
-    # https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+    @ OTHER SOLUTION:
+    @ https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 line:
-    # Ieeja:
-    # R0 = X0
-    # R1 = Y0
-    # R2 = X1
-    # R3 = Y1
+    @ Ieeja:
+    @ R0 = X0
+    @ R1 = Y0
+    @ R2 = X1
+    @ R3 = Y1
     PUSH {R4-R12, LR}
-    # if abs(y1 - y0) < abs(x1 - x0)
+    @ if abs(y1 - y0) < abs(x1 - x0)
     SUB R4, R3, R1
     CMP R4, #0
-    # Ja negatīvs, tad maina zīmi.
+    @ Ja negatīvs, tad maina zīmi.
     RSBLT R4, R4, #0
     SUB R5, R2, R0
     CMP R5, #0
     RSBLT R5, R5, #0
     CMP R4, R5
-    # R4 un R5 vairs nevajag.
+    @ R4 un R5 vairs nevajag.
     BGE plottinglinehigh
 plottinglinelow:
     CMP R0, R2
@@ -147,7 +147,7 @@ plottinglinehigh:
     BLGT lineswitchsides
     B plotlinehigh
 lineswitchsides:
-    # Samainīt vietām x0, y0 ar x1, y1
+    @ Samainīt vietām x0, y0 ar x1, y1
     PUSH {LR}
     MOV R4, R0
     MOV R0, R2
@@ -158,65 +158,65 @@ lineswitchsides:
     POP {PC}
 
 plotlinelow:
-    # R0 = X0
-    # R1 = Y0
-    # R2 = X1 -> R7
+    @ R0 = X0
+    @ R1 = Y0
+    @ R2 = X1 -> R7
     MOV R7, R2
-    # R3 = Y1
-    # R7 = X1
-    # R8 = dx
-    # R9 = dy
-    # R10= yi
-    # R11= D
-    # dx = x1 - x0
+    @ R3 = Y1
+    @ R7 = X1
+    @ R8 = dx
+    @ R9 = dy
+    @ R10= yi
+    @ R11= D
+    @ dx = x1 - x0
     SUB R8, R7, R0
-    # dy = y1 - y0
+    @ dy = y1 - y0
     SUB R9, R3, R1
-    # yi = 1
+    @ yi = 1
     MOV R10, #1
-    # if dy < 0
+    @ if dy < 0
     CMP R9, #0
     BGE continueplotlinelow
-    # yi = -1
+    @ yi = -1
     MOV R10, #-1
-    # dy = -dy
+    @ dy = -dy
     RSB R9, R9, #0
 continueplotlinelow:
-    # D = (2 * dy) - dx
+    @ D = (2 * dy) - dx
     LSL R11, R9, #1
     SUB R11, R11, R8
     BL getbufferinfo
-    # R0 = FREE
-    # R1 = X
-    # R2 = Y
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
     MOV R2, R1
     MOV R1, R0
-    # R3 = COLOR
-    # R4 = ADDRESS
-    # R5 = Xmax
-    # R6 = Ymax
-    # R7 = X1
-    # R8 = dx
-    # R9 = dy
-    # R10= yi
-    # R11= D
+    @ R3 = COLOR
+    @ R4 = ADDRESS
+    @ R5 = Xmax
+    @ R6 = Ymax
+    @ R7 = X1
+    @ R8 = dx
+    @ R9 = dy
+    @ R10= yi
+    @ R11= D
 linelowloop:
-    # for x from x0 to x1
+    @ for x from x0 to x1
     CMP R1, R7
     BGT fastend
     BL putpixel
-    # if D > 0
+    @ if D > 0
     CMP R11, #0
     BLE linelowloopno
 linelowloopyes:
-    # y = y + yi
+    @ y = y + yi
     ADD R2, R2, R10
-    # D = D + (2 * (dy - dx))
+    @ D = D + (2 * (dy - dx))
     SUB R0, R9, R8
     ADD R11, R11, R0, LSL #1
     B repeatlinelowloop
 linelowloopno:
-    # D = D + 2*dy
+    @ D = D + 2*dy
     ADD R11, R11, R9, LSL #1
 repeatlinelowloop:
     ADD R1, R1, #1
@@ -224,94 +224,94 @@ repeatlinelowloop:
 
 
 plotlinehigh:
-    # R0 = X0
-    # R1 = Y0
-    # R2 = X1
-    # R3 = Y1 -> R7
+    @ R0 = X0
+    @ R1 = Y0
+    @ R2 = X1
+    @ R3 = Y1 -> R7
     MOV R7, R3
-    # R7 = Y1
-    # R8 = dx
-    # R9 = dy
-    # R10= xi
-    # R11= D
-    # dx = x1 - x0
+    @ R7 = Y1
+    @ R8 = dx
+    @ R9 = dy
+    @ R10= xi
+    @ R11= D
+    @ dx = x1 - x0
     SUB R8, R7, R0
-    # dy = y1 - y0
+    @ dy = y1 - y0
     SUB R9, R3, R1
-    # xi = 1
+    @ xi = 1
     MOV R10, #1
-    # if dx < 0
+    @ if dx < 0
     CMP R8, #0
     BGE continueplotlinehigh
-    # xi = -1
+    @ xi = -1
     MOV R10, #-1
-    # dx = -dx
+    @ dx = -dx
     RSB R8, R8, #0
 continueplotlinehigh:
-    # D = (2 * dx) - dy
+    @ D = (2 * dx) - dy
     LSL R11, R8, #1
     SUB R11, R11, R9
     BL getbufferinfo
-    # R0 = FREE
-    # R1 = X
-    # R2 = Y
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
     MOV R2, R1
     MOV R1, R0
-    # R3 = COLOR
-    # R4 = ADDRESS
-    # R5 = Xmax
-    # R6 = Ymax
-    # R7 = Y1
-    # R8 = dx
-    # R9 = dy
-    # R10= xi
-    # R11= D
+    @ R3 = COLOR
+    @ R4 = ADDRESS
+    @ R5 = Xmax
+    @ R6 = Ymax
+    @ R7 = Y1
+    @ R8 = dx
+    @ R9 = dy
+    @ R10= xi
+    @ R11= D
 linehighloop:
-    # for y from y0 to y1
+    @ for y from y0 to y1
     CMP R2, R7
     BGT fastend
     BL putpixel
-    # if D > 0
+    @ if D > 0
     CMP R11, #0
     BLE linehighloopno
 linehighloopyes:
-    # x = x + xi
+    @ x = x + xi
     ADD R1, R1, R10
-    # D = D + (2 * (dx - dy))
+    @ D = D + (2 * (dx - dy))
     SUB R0, R8, R9
     ADD R11, R11, R0, LSL #1
     B repeatlinehighloop
 linehighloopno:
-    # D = D + 2*dx
+    @ D = D + 2*dx
     ADD R11, R11, R8, LSL #1
 repeatlinehighloop:
     ADD R2, R2, #1
     B linehighloop
 
-# Apļa līnija: https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+@ Apļa līnija: https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 circle:
     PUSH {R4-R12, LR}
-    # Ieeja:
-    # R0 = X -> R1
-    # R1 = Y -> R2
-    # R2 = R -> R7
+    @ Ieeja:
+    @ R0 = X -> R1
+    @ R1 = Y -> R2
+    @ R2 = R -> R7
     MOV R7, R2
     MOV R2, R1
     MOV R1, R0
     BL getbufferinfo
-    # R0 = FREE
-    # R1 = X
-    # R2 = Y
-    # R3 = COLOR
-    # R4 = ADDRESS
-    # R5 = Xmax
-    # R6 = Ymax
-    # R7 = R
-    # R8 = t1
-    # R9 = pre-x
-    # R10= pre-y
-    # R11= t2
-    # t1 = r / 16
+    @ R0 = FREE
+    @ R1 = X
+    @ R2 = Y
+    @ R3 = COLOR
+    @ R4 = ADDRESS
+    @ R5 = Xmax
+    @ R6 = Ymax
+    @ R7 = R
+    @ R8 = t1
+    @ R9 = pre-x
+    @ R10= pre-y
+    @ R11= t2
+    @ t1 = r / 16
     MOV R8, R7, LSR #4 @ Dalīt ar 16
     @ x = r
     MOV R9, R7
@@ -516,7 +516,7 @@ triSigns:
     @ R11= x2
     @ R12= y2
 
-    # d3 = sign(pt, v3, v1);
+    @ d3 = sign(pt, v3, v1);
     MOV R0, R9
     MOV R9, R1
     MOV R1, R0
